@@ -244,7 +244,7 @@
             `;
         }
         
-        // NOVO: Função para carregar clientes do arquivo JSON
+        // Função para carregar clientes do arquivo JSON
         async function carregarClientes() {
             try {
                 // Exibe uma mensagem de carregamento inicial
@@ -271,19 +271,17 @@
 
             } catch (error) {
                 console.error('Erro ao carregar clientes.json:', error);
-                exibirMensagem('erro', 'Erro ao Carregar Lista de Clientes', 'Não foi possível carregar a lista de clientes a partir do arquivo `clientes.json`. Verifique o console.');
+                // Se der erro, garante que a lista está vazia e exibe mensagem, mas não bloqueia a consulta de CNPJ.
+                clientList = {};
+                codeToCnpjMap = {};
+                exibirMensagem('erro', 'Erro ao Carregar Lista de Clientes', 'Não foi possível carregar a lista de clientes. Apenas a consulta por CNPJ (14 dígitos) funcionará.');
             }
         }
 
 
         // Função principal para consultar o CNPJ (agora aceita CNPJ formatado/não formatado ou Código)
+        // O bloqueio de consulta foi removido para permitir a busca de CNPJ mesmo sem a lista de clientes.
         async function consultarCNPJ() {
-            // Verifica se a lista de clientes foi carregada
-            if (Object.keys(clientList).length === 0) {
-                 exibirMensagem('erro', 'Lista Não Carregada', 'Aguarde o carregamento da lista de clientes ou verifique o console para erros.');
-                 return;
-            }
-            
             // Remove todos os caracteres não numéricos para obter o valor puro
             const rawInput = cnpjInput.value.replace(/\D/g, ''); 
             consultarBtn.disabled = true;
@@ -294,10 +292,10 @@
                 // Caso 1: Entrada é um CNPJ válido (14 dígitos puros)
                 cnpjToSearch = rawInput;
             } else if (rawInput.length > 0 && rawInput.length <= 4 && codeToCnpjMap[rawInput]) {
-                // Caso 2: Entrada é um Código de Cliente válido (código curto)
+                // Caso 2: Entrada é um Código de Cliente válido (código curto), e o mapa foi carregado
                 cnpjToSearch = codeToCnpjMap[rawInput];
             } else {
-                // Caso 3: Entrada inválida
+                // Caso 3: Entrada inválida (ou código fornecido quando o mapa falhou ao carregar)
                 exibirMensagem('erro', 'Entrada Inválida', 'Insira um CNPJ válido (14 dígitos) ou um Código de Cliente existente.');
                 consultarBtn.disabled = false;
                 return;
@@ -322,7 +320,7 @@
                     
                     const endereco = `${data.tipo_logradouro} ${data.logradouro}, ${data.numero} - ${data.bairro}, ${data.municipio}/${data.uf}`;
 
-                    // 4. Verifica se a empresa é cliente do escritório (usando o CNPJ encontrado/determinado)
+                    // 4. Verifica se a empresa é cliente do escritório (clientList pode estar vazia, o que é seguro)
                     const clientCode = clientList[cnpjToSearch];
                     let clientStatusHtml = '';
 
@@ -441,3 +439,4 @@
     </script>
 </body>
 </html>
+
