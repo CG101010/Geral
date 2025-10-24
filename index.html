@@ -267,7 +267,8 @@
 
                 console.log('Clientes carregados:', Object.keys(clientList).length);
                 // Exibe a mensagem "Pronto para Consultar" após o carregamento bem-sucedido
-                exibirMensagem('info', 'Pronto para Consultar', `Lista de ${Object.keys(clientList).length} clientes carregada. Digite o CNPJ ou o Código de Cliente para iniciar a busca.`);
+                // MENSAGEM ATUALIZADA: Remove a contagem de clientes para simplificar.
+                exibirMensagem('info', 'Pronto para Consultar', 'Digite o CNPJ ou o Código de Cliente para iniciar a busca.');
 
             } catch (error) {
                 console.error('Erro ao carregar clientes.json:', error);
