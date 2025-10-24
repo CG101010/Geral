@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consulta Cadastral</title>
+    
+    <!-- Ícone da página -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath fill='%233b82f6' d='M25 11c0-1.66-1.34-3-3-3s-3 1.34-3 3c0 1.66 1.34 3 3 3s3-1.34 3-3zm0 6c0 1.66-1.34 3-3 3s-3-1.34-3-3c0-1.66 1.34-3 3-3s3 1.34 3 3zm0 6c0 1.66-1.34 3-3 3s-3-1.34-3-3c0-1.66 1.34-3 3-3s3 1.34 3 3zm0 6c0 1.66-1.34 3-3 3s-3-1.34-3-3c0-1.66 1.34-3 3-3s3 1.34 3 3zm-9 12h12c1.1 0 2-.9 2-2v-8c0-2.21-1.79-4-4-4h-8c-2.21 0-4 1.79-4 4v8c0 1.1.9 2 2 2z'/%3E%3C/svg%3E">
+    
+    <!-- Link para Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Define a fonte Inter (padrão) */
+        :root {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Estilização para o spinner de carregamento */
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #3b82f6; /* Tailwind blue-500 */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Container principal e centralizador -->
+    <div class="min-h-screen flex flex-col items-center justify-center p-4 bg-gray-50 pb-12">
+        
+        <!-- Cartão de Consulta Principal -->
+        <div class="w-full max-w-lg bg-white shadow-xl rounded-xl p-8 space-y-6">
+
+            <!-- Cabeçalho -->
+            <header class="text-center mb-6">
+                <!-- Título da Aplicação (Subtítulo removido) -->
+                <h1 class="text-3xl font-extrabold text-gray-900">
+                    Consulta Cadastral
+                </h1>
+            </header>
+
+            <!-- Input e Botão de Consulta -->
+            <div class="flex flex-col sm:flex-row gap-3">
+                <input
+                    type="text"
+                    id="cnpjInput"
+                    placeholder="CNPJ ou Código de Cliente"
+                    class="flex-grow p-3 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 text-lg shadow-sm"
+                    aria-label="CNPJ ou Código de Cliente"
+                    maxlength="18"
+                    oninput="applyCnpjMask(this)"
+                >
+                <button
+                    id="consultarBtn"
+                    onclick="consultarCNPJ()"
+                    class="shrink-0 w-full sm:w-auto px-6 py-3 text-lg font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out shadow-md disabled:bg-blue-400"
+                >
+                    Consultar
+                </button>
+            </div>
+
+            <!-- Área de Resultado e Mensagens (Inicial e Após Consulta) -->
+            <div id="resultadoArea" class="mt-6">
+                <!-- O conteúdo (mensagem inicial, spinner ou resultado) aparece aqui -->
+            </div>
+            
+            <!-- Local do Logotipo e Botões de Ação Rápida -->
+            <div class="mt-8 flex items-center justify-center space-x-4">
+                
+                <!-- BOTÃO GOB -->
+                <a href="https://app.gob.com.br/dashboard" target="_blank"
+                   class="px-5 py-2 text-base font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out shadow-lg"
+                   aria-label="Acessar Painel GOB">
+                    GOB
+                </a>
+
+                <!-- Logotipo Placeholder -->
+                <img src="https://i.postimg.cc/bwpnxdnv/Gemini-Generated-Image-a0n04wa0n04wa0n0.png" 
+                     alt="Logo do Escritório" 
+                     class="w-16 h-16 rounded-full shadow-lg object-cover">
+
+                <!-- Botão Fator R -->
+                <a href="https://cr0w131.github.io/fatorr/" target="_blank"
+                   class="px-5 py-2 text-base font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out shadow-lg"
+                   aria-label="Acessar Calculadora Fator R">
+                    Fator R
+                </a>
+            </div>
+            <!-- FIM DOS BOTÕES DE ACESSO -->
+
+        </div>
+
+        <!-- Cartão de Acessos Rápidos -->
+        <div class="w-full max-w-lg mt-6 p-6 bg-white rounded-xl shadow-xl border border-blue-100">
+            <h2 class="text-xl font-bold text-gray-700 mb-4 text-center">Acessos Rápidos</h2>
+            <!-- Grade de Botões de Acesso Rápido -->
+            <div id="quickAccessGrid" class="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                <!-- Botões gerados via JS -->
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        const API_URL = 'https://brasilapi.com.br/api/cnpj/v1/';
+        const cnpjInput = document.getElementById('cnpjInput');
+        const consultarBtn = document.getElementById('consultarBtn');
+        const resultadoArea = document.getElementById('resultadoArea');
+
+        // Variáveis globais para a lista de clientes (serão carregadas do JSON)
+        let clientList = {};
+        let codeToCnpjMap = {};
+        
+        // --- CONFIGURAÇÃO DOS BOTÕES DE ACESSO RÁPIDO ---
+        const quickAccessButtons = [
+            // Botão 1: IPTU-PMFI
+            { name: "IPTU-PMFI", link: "https://governodigital.foz.pr.gov.br/governo-digital/contribuinte/cadastros?contexto=iptu&tipo=cpf" },
+            // Botão 2: Débitos-PMFI
+            { name: "Débitos-PMFI", link: "https://governodigital.foz.pr.gov.br/governo-digital/contribuinte/cadastros?contexto=empresas&tipo=cnpj" },
+            // Botão 3: Nota Fiscal-PMFI
+            { name: "Nota Fiscal-PMFI", link: "https://fozdoiguacupr.gestaoiss.com.br/" },
+            // Botão 4
+            { name: "E-CAC", link: "https://cav.receita.fazenda.gov.br/autenticacao/login" },
+            // Botão 5
+            { name: "FGTS Digital", link: "https://fgtsdigital.sistema.gov.br/portal/login" },
+            // Botão 6
+            { name: "eSocial", link: "https://login.esocial.gov.br/login.aspx" },
+        ];
+        
+        function setupQuickAccessButtons() {
+            const grid = document.getElementById('quickAccessGrid');
+            if (!grid) return;
+
+            let buttonsHtml = '';
+            quickAccessButtons.forEach(button => {
+                buttonsHtml += `
+                    <a href="${button.link}" target="_blank"
+                       class="flex items-center justify-center text-center p-4 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition duration-150 ease-in-out shadow-lg transform hover:scale-[1.02] active:scale-[0.98]">
+                        ${button.name}
+                    </a>
+                `;
+            });
+            grid.innerHTML = buttonsHtml;
+        }
+        // --- FIM DA CONFIGURAÇÃO DOS BOTÕES DE ACESSO RÁPIDO ---
+
+
+        // FUNÇÃO DE MÁSCARA CORRIGIDA E ROBUSTA
+        function applyCnpjMask(input) {
+            let value = input.value.replace(/\D/g, ''); // 1. Remove tudo que não for dígito
+            const rawLength = value.length;
+
+            // Caso 1: Código de Cliente (1 a 4 dígitos) - Não aplica máscara
+            if (rawLength > 0 && rawLength <= 4) {
+                input.value = value;
+                return;
+            }
+
+            // Caso 2: CNPJ (limita a 14 dígitos)
+            if (rawLength > 14) {
+                value = value.substring(0, 14);
+            }
+
+            // Aplica a máscara CNPJ (XX.XXX.XXX/XXXX-XX) usando substring para evitar erros de regex
+            let formattedValue = '';
+            
+            if (value.length > 0) {
+                formattedValue += value.substring(0, 2);
+            }
+            if (value.length > 2) {
+                formattedValue += '.' + value.substring(2, 5);
+            }
+            if (value.length > 5) {
+                formattedValue += '.' + value.substring(5, 8);
+            }
+            if (value.length > 8) {
+                formattedValue += '/' + value.substring(8, 12);
+            }
+            if (value.length > 12) {
+                formattedValue += '-' + value.substring(12, 14);
+            }
+
+            input.value = formattedValue;
+        }
+
+        // Função utilitária para exibir a Razão Social ou Nome Fantasia
+        function getNomeExibicao(data) {
+            return data.nome_fantasia && data.nome_fantasia.trim() !== ''
+                ? data.nome_fantasia
+                : data.razao_social;
+        }
+
+        // Função para formatar a situação cadastral em texto descritivo e capitalizado
+        function formatarSituacaoCadastral(situacao) {
+            if (situacao === null || situacao === undefined || situacao === '') {
+                return 'Não Informada';
+            }
+            
+            const situacaoString = String(situacao);
+            
+            const statusMap = {
+                // Status textuais (esperados em caixa alta)
+                'ATIVA': 'Ativa', 'BAIXADA': 'Baixada', 'SUSPENSA': 'Suspensa',
+                'INAPTA': 'Inapta', 'NULA': 'Nula',
+                
+                // Mapeamento de códigos numéricos (Receita Federal) como strings
+                '01': 'Nula', '02': 'Ativa', '03': 'Suspensa', '04': 'Inapta', '08': 'Baixada',
+                '1': 'Nula', '2': 'Ativa', '3': 'Suspensa', '4': 'Inapta', '8': 'Baixada',
+            };
+
+            const upperCaseStatus = situacaoString.toUpperCase().trim();
+            
+            return statusMap[upperCaseStatus] || situacaoString.charAt(0).toUpperCase() + situacaoString.slice(1).toLowerCase();
+        }
+
+        // Função utilitária para exibir mensagens (sucesso/erro/info)
+        function exibirMensagem(tipo, titulo, conteudo) {
+            const baseClasses = "p-4 rounded-lg font-medium shadow-md transition-all duration-300 ease-in-out";
+            let colorClasses;
+
+            switch (tipo) {
+                case 'sucesso':
+                    colorClasses = "bg-green-100 border-l-4 border-green-500 text-green-800";
+                    break;
+                case 'erro':
+                    colorClasses = "bg-red-100 border-l-4 border-red-500 text-red-800";
+                    break;
+                default: // 'info'
+                    colorClasses = "bg-blue-100 border-l-4 border-blue-500 text-blue-800";
+                    break;
+            }
+
+            resultadoArea.innerHTML = `
+                <div class="animate-in fade-in ${baseClasses} ${colorClasses}">
+                    <h3 class="font-bold text-lg mb-1">${titulo}</h3>
+                    <p class="text-sm">${conteudo}</p>
+                </div>
+            `;
+        }
+        
+        // NOVO: Função para carregar clientes do arquivo JSON
+        async function carregarClientes() {
+            try {
+                // Exibe uma mensagem de carregamento inicial
+                resultadoArea.innerHTML = `<div class="p-4 rounded-lg font-medium shadow-md bg-blue-100 border-l-4 border-blue-500 text-blue-800 text-sm">Carregando lista de clientes...</div>`;
+                
+                const response = await fetch('clientes.json');
+                
+                // Verifica se a resposta foi bem-sucedida
+                if (!response.ok) {
+                    throw new Error(`Erro HTTP! Status: ${response.status}`);
+                }
+
+                clientList = await response.json();
+
+                // Cria o mapa reverso (CÓDIGO -> CNPJ)
+                codeToCnpjMap = {};
+                for (const cnpj in clientList) {
+                    codeToCnpjMap[clientList[cnpj]] = cnpj;
+                }
+
+                console.log('Clientes carregados:', Object.keys(clientList).length);
+                // Exibe a mensagem "Pronto para Consultar" após o carregamento bem-sucedido
+                exibirMensagem('info', 'Pronto para Consultar', `Lista de ${Object.keys(clientList).length} clientes carregada. Digite o CNPJ ou o Código de Cliente para iniciar a busca.`);
+
+            } catch (error) {
+                console.error('Erro ao carregar clientes.json:', error);
+                exibirMensagem('erro', 'Erro ao Carregar Lista de Clientes', 'Não foi possível carregar a lista de clientes a partir do arquivo `clientes.json`. Verifique o console.');
+            }
+        }
+
+
+        // Função principal para consultar o CNPJ (agora aceita CNPJ formatado/não formatado ou Código)
+        async function consultarCNPJ() {
+            // Verifica se a lista de clientes foi carregada
+            if (Object.keys(clientList).length === 0) {
+                 exibirMensagem('erro', 'Lista Não Carregada', 'Aguarde o carregamento da lista de clientes ou verifique o console para erros.');
+                 return;
+            }
+            
+            // Remove todos os caracteres não numéricos para obter o valor puro
+            const rawInput = cnpjInput.value.replace(/\D/g, ''); 
+            consultarBtn.disabled = true;
+
+            let cnpjToSearch;
+            
+            if (rawInput.length === 14) {
+                // Caso 1: Entrada é um CNPJ válido (14 dígitos puros)
+                cnpjToSearch = rawInput;
+            } else if (rawInput.length > 0 && rawInput.length <= 4 && codeToCnpjMap[rawInput]) {
+                // Caso 2: Entrada é um Código de Cliente válido (código curto)
+                cnpjToSearch = codeToCnpjMap[rawInput];
+            } else {
+                // Caso 3: Entrada inválida
+                exibirMensagem('erro', 'Entrada Inválida', 'Insira um CNPJ válido (14 dígitos) ou um Código de Cliente existente.');
+                consultarBtn.disabled = false;
+                return;
+            }
+            
+            // 1. Inicia o estado de carregamento
+            resultadoArea.innerHTML = `<div class="flex justify-center py-4"><div class="spinner"></div></div>`;
+
+            try {
+                // 2. Faz a requisição à API usando o CNPJ determinado
+                const url = `${API_URL}${cnpjToSearch}`;
+                const response = await fetch(url);
+                const data = await response.json();
+
+                // 3. Verifica a resposta da API
+                if (response.ok) {
+                    // Sucesso: exibe os dados da empresa
+                    const nomeExibicao = getNomeExibicao(data);
+                    
+                    // Formata a situação cadastral para texto descritivo e capitalizado
+                    const situacaoFormatada = formatarSituacaoCadastral(data.situacao_cadastral);
+                    
+                    const endereco = `${data.tipo_logradouro} ${data.logradouro}, ${data.numero} - ${data.bairro}, ${data.municipio}/${data.uf}`;
+
+                    // 4. Verifica se a empresa é cliente do escritório (usando o CNPJ encontrado/determinado)
+                    const clientCode = clientList[cnpjToSearch];
+                    let clientStatusHtml = '';
+
+                    // ATENÇÃO: Links de arquivo local (file:///) só funcionarão no seu ambiente de trabalho (Windows Explorer/Rede).
+                    const linkEmissaoRecibo = "file:///Z:/06%20-%20DEPARTAMENTO%20PESSOAL/CALCULO/recibo.html";
+                    const linkCalculadora = "file:///Z:/06%20-%20DEPARTAMENTO%20PESSOAL/CALCULO/holerite.html";
+
+                    if (clientCode) {
+                        // É cliente: mostra o código e os botões adicionais
+                        clientStatusHtml = `
+                            <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-inner text-center space-y-4 animate-in fade-in duration-500">
+                                <p class="text-sm font-semibold text-gray-700">Status do Escritório:</p>
+                                
+                                <!-- Código do Cliente -->
+                                <div class="flex justify-center">
+                                    <span
+                                       class="sm:w-auto px-6 py-3 bg-amber-500 text-white font-extrabold text-xl rounded-xl shadow-md inline-block cursor-default" 
+                                       title="Código do Cliente">
+                                        CÓDIGO: ${clientCode}
+                                    </span>
+                                </div>
+                                
+                                <!-- Botões de Ação para Clientes -->
+                                <div class="flex justify-center gap-2 pt-2 flex-wrap">
+                                    <a href="${linkEmissaoRecibo}" target="_blank"
+                                       class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md"
+                                       title="Acessar Emissão de Recibo">
+                                        Emissão Recibo
+                                    </a>
+                                    <a href="${linkCalculadora}" target="_blank"
+                                       class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md"
+                                       title="Acessar Calculadora Trabalhista">
+                                        Calculadora
+                                    </a>
+                                    <a href="file:///Z:/02%20-%20CONTROLES%20-%20ESCONTEL/CONTROLES/00%20-%20Controle%20de%20Certificados.xlsx" target="_blank"
+                                       class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md"
+                                       title="Acessar Controle de Certificados">
+                                        Controle Certificados
+                                    </a>
+                                </div>
+                            </div>
+                        `;
+                    } else {
+                        // Não é cliente: mostra a mensagem.
+                        clientStatusHtml = `
+                            <div class="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-inner text-center animate-in fade-in duration-500">
+                                <p class="text-xl font-extrabold text-red-600">Não é Cliente</p>
+                            </div>
+                        `;
+                    }
+
+                    // Monta o HTML completo do resultado (Dados API + Status Cliente)
+                    resultadoArea.innerHTML = `
+                        <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-6 space-y-4 animate-in fade-in duration-500">
+                            <!-- Nome de Exibição -->
+                            <h3 class="text-2xl font-bold text-blue-600">${nomeExibicao}</h3>
+                            <p class="text-gray-600 text-sm">
+                                <span class="font-semibold">Razão Social:</span> ${data.razao_social}
+                            </p>
+
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <!-- Situação Cadastral -->
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-500 uppercase">Situação Cadastral</p>
+                                    <span class="text-lg font-bold ${situacaoFormatada === 'Ativa' ? 'text-green-600' : 'text-red-600'}">
+                                        ${situacaoFormatada}
+                                    </span>
+                                    
+                                </div>
+                                <!-- CNPJ -->
+                                <div>
+                                    <p class="text-sm font-semibold text-gray-500 uppercase">CNPJ</p>
+                                    <p class="text-lg font-mono text-gray-800">${cnpjToSearch.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')}</p>
+                                </div>
+                            </div>
+
+                            <!-- Endereço e Datas -->
+                            <div>
+                                <p class="text-sm font-semibold text-gray-500 uppercase">Endereço Completo</p>
+                                <p class="text-gray-700">${endereco}</p>
+                                <p class="text-gray-700 mt-1">CEP: ${data.cep.replace(/^(\d{5})(\d{3})$/, '$1-$2')} - Início da Atividade: ${data.data_inicio_atividade}</p>
+                            </div>
+                        </div>
+                        ${clientStatusHtml}
+                    `;
+                } else {
+                    // Erro: Exibe a mensagem de erro da API
+                    const errorMessage = data.message || 'O CNPJ/Código informado não foi encontrado ou não está disponível na base de dados.';
+                    exibirMensagem('erro', 'Falha na Consulta', errorMessage);
+                }
+
+            } catch (error) {
+                // Erro de rede ou outro erro inesperado
+                console.error('Erro na consulta:', error);
+                exibirMensagem('erro', 'Erro de Conexão', 'Não foi possível conectar ao serviço de consulta. Verifique sua conexão ou tente novamente mais tarde.');
+            } finally {
+                // 5. Finaliza o estado de carregamento
+                consultarBtn.disabled = false;
+            }
+        }
+
+        // Listener para permitir a consulta ao pressionar 'Enter'
+        cnpjInput.addEventListener('keydown', function(event) {
+            if (event.key === 'Enter' && !consultarBtn.disabled) {
+                consultarCNPJ();
+            }
+        });
+
+        // Mensagem inicial e Configuração dos Botões de Acesso Rápido
+        document.addEventListener('DOMContentLoaded', () => {
+            // Chama o carregamento da lista de clientes (irá exibir o status de carregamento)
+            carregarClientes(); 
+            setupQuickAccessButtons(); // Chama a função para gerar os botões
+        });
+
+    </script>
+</body>
+</html>
