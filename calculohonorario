@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Honorários - ESCONTEL (Tabela ASSCON 2026)</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        escontel: {
+                            green: '#145c1a',      /* Verde oficial ESCONTEL */
+                            greenHover: '#0d3d11',
+                            greenLight: '#f1f8f2', /* Fundo claro para contrastes */
+                            dark: '#0a0a0a',       /* Preto elegante */
+                            grayDark: '#2d3748',   /* Cinza Escuro */
+                            grayLight: '#f8fafc',  /* Cinza ultraleve */
+                            border: '#e2e8f0'      /* Cinza de divisórias */
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- html2pdf.js para exportação de PDFs comerciais -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f1f5f9;
+        }
+        /* Efeito de transição fluida entre abas/etapas */
+        .fade-in {
+            animation: fadeIn 0.35s ease-in-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(8px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        /* Configurações específicas para impressão */
+        @media print {
+            body {
+                background: white !important;
+                color: black !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .print-only {
+                display: block !important;
+            }
+        }
+    </style>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex items-center justify-center py-10 px-4 antialiased">
+
+    <!-- CONTAINER CENTRAL DO SIMULADOR (COMPACTO, BASEADO NAS REFERÊNCIAS VISUAIS) -->
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl border border-slate-100 overflow-hidden transition-all duration-300">
+        
+        <!-- CABEÇALHO COM LOGOTIPO IDENTITÁRIO ESCONTEL (REFERÊNCIA: image_1a7cf8.png) -->
+        <div class="px-6 pt-8 pb-4 flex flex-col items-center text-center">
+            <!-- Logotipo Vetorial SVG Altamente Fiel -->
+            <div class="flex flex-col items-center select-none">
+                <div class="flex items-center gap-1">
+                    <span class="text-3xl font-extrabold tracking-tight text-escontel-dark font-sans leading-none">ESC</span>
+                    <!-- Símbolo de Alvo de Círculos Concêntricos -->
+                    <div class="relative w-9 h-9 flex items-center justify-center">
+                        <svg class="w-full h-full text-escontel-green" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="6" />
+                            <circle cx="50" cy="50" r="32" stroke="currentColor" stroke-width="6" />
+                            <circle cx="50" cy="50" r="19" stroke="currentColor" stroke-width="6" />
+                            <circle cx="50" cy="50" r="6" stroke="currentColor" stroke-width="6" />
+                            <polygon points="12,50 42,38 42,62" fill="#000" />
+                        </svg>
+                    </div>
+                    <span class="text-3xl font-extrabold tracking-tight text-escontel-dark font-sans leading-none">NTEL</span>
+                </div>
+                <div class="text-[11px] font-bold tracking-[0.25em] text-escontel-green uppercase -mt-0.5 leading-none pl-1">
+                    contabilidade
+                </div>
+            </div>
+            
+            <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-4">Parâmetros Referenciais ASSCON 2026</p>
+        </div>
+
+        <!-- ETAPA 1: SELEÇÃO DOS PARÂMETROS DA EMPRESA (Valores Ocultos por Requisito) -->
+        <div id="step-form" class="px-6 pb-8 space-y-5 fade-in">
+            
+            <!-- Linha 1: Atividade e Regime Tributário -->
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Atividade</label>
+                    <div class="relative">
+                        <select id="input-atividade" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-escontel-green focus:border-escontel-green appearance-none cursor-pointer transition-all">
+                            <option value="servico">Serviço</option>
+                            <option value="comercio">Comércio</option>
+                            <option value="industria">Indústria</option>
+                            <option value="multissetorial">Multissetorial</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Regime Tributário</label>
+                    <div class="relative">
+                        <select id="input-regime" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-escontel-green focus:border-escontel-green appearance-none cursor-pointer transition-all">
+                            <option value="simples">Simples Nacional</option>
+                            <option value="presumido">Lucro Presumido</option>
+                            <option value="real">Lucro Real</option>
+                        </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                            <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linha 2: Faixa de Faturamento Anual (Alinhado com a nova tabela referencial) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Faturamento Anual de Referência</label>
+                <div class="relative">
+                    <select id="input-faturamento" class="w-full bg-slate-50 border border-slate-200 rounded-2xl px-3.5 py-3 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-escontel-green focus:border-escontel-green appearance-none cursor-pointer transition-all">
+                        <option value="mei">Até R$ 81.000,00 (MEI)</option>
+                        <option value="faixa1">Até R$ 180.000,00 (ME)</option>
+                        <option value="faixa2">De R$ 180.000,01 a R$ 360.000,00 (ME)</option>
+                        <option value="faixa3">De R$ 360.000,01 a R$ 720.000,00 (EPP)</option>
+                        <option value="faixa4">De R$ 720.000,01 a R$ 1.800.000,00 (EPP)</option>
+                        <option value="faixa5">De R$ 1.800.000,01 a R$ 3.600.000,00 (EPP)</option>
+                        <option value="faixa6">De R$ 3.600.000,01 a R$ 4.800.000,00 (EPP)</option>
+                    </select>
+                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                        <i data-lucide="chevron-down" class="w-4 h-4"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Linha 3: Vínculos de Departamento Pessoal (Sócios, Funcionários e Autônomos) -->
+            <div>
+                <label class="block text-xs font-bold text-slate-700 mb-1.5 uppercase tracking-wide">Vínculos de DP / Funcionários</label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-400">
+                        <i data-lucide="users" class="w-4 h-4"></i>
+                    </span>
+                    <input type="number" id="input-funcionarios" min="0" value="0" placeholder="Quantidade de funcionários"
+                           class="w-full pl-11 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-escontel-green focus:border-escontel-green transition-all">
+                </div>
+                <p class="text-[10px] text-slate-400 mt-1 font-medium pl-1">Inclui empregados, sócios (pró-labore) e prestadores autônomos.</p>
+            </div>
+
+            <!-- Opções Condicionais de Compliance e Volume Operacional -->
+            <div class="space-y-3">
+                <!-- Checkbox Fator R (Exibido de forma inteligente para Simples Nacional) -->
+                <div id="wrapper-fator-r" class="p-4 bg-slate-50 border border-slate-150 rounded-2xl hover:bg-slate-100/50 transition-all duration-200">
+                    <label class="relative flex items-start gap-3 cursor-pointer select-none">
+                        <input id="checkbox-fator-r" type="checkbox" class="mt-1 w-5 h-5 text-escontel-green border-slate-300 rounded focus:ring-escontel-green cursor-pointer">
+                        <div class="text-xs">
+                            <span class="block font-bold text-slate-800">Empresa enquadrada no Fator R</span>
+                            <span class="text-slate-500 block mt-0.5">Atividades de prestação de serviços com monitoramento e apuração mensal de folha.</span>
+                        </div>
+                    </label>
+                </div>
+
+                <!-- Checkbox Movimentação Intensa (Ajuste de 30% previsto na tabela ASSCON e image_1a717a.png) -->
+                <div class="p-4 bg-slate-50 border border-slate-150 rounded-2xl hover:bg-slate-100/50 transition-all duration-200">
+                    <label class="relative flex items-start gap-3 cursor-pointer select-none">
+                        <input id="checkbox-movimentacao" type="checkbox" class="mt-1 w-5 h-5 text-escontel-green border-slate-300 rounded focus:ring-escontel-green cursor-pointer">
+                        <div class="text-xs">
+                            <span class="block font-bold text-slate-800">Movimentação Intensa</span>
+                            <span class="text-slate-500 block mt-0.5">Alto volume de notas fiscais, conciliação bancária complexa ou múltiplas contas (+30%).</span>
+                        </div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Botão de Processamento da Proposta -->
+            <button type="button" onclick="goToResult()"
+                    class="w-full py-4 px-6 bg-escontel-dark hover:bg-black text-white font-bold rounded-2xl text-sm tracking-wide transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl">
+                Avançar para o Resultado <i data-lucide="arrow-right" class="w-4 h-4 text-escontel-green"></i>
+            </button>
+
+            <!-- Rodapé de Acesso Imediato -->
+            <div class="flex items-center justify-center gap-1 text-[10px] text-slate-400 font-semibold uppercase tracking-wider pt-1">
+                <i data-lucide="zap" class="w-3.5 h-3.5 text-escontel-green animate-pulse"></i> Acesso Imediato
+            </div>
+        </div>
+
+        <!-- ETAPA 2: APRESENTAÇÃO DETALHADA DO RESULTADO (Valores Finais e Setores Revelados) -->
+        <div id="step-result" class="hidden px-6 pb-8 space-y-6 fade-in">
+            
+            <!-- Painel do Valor Total do Honorário -->
+            <div class="bg-escontel-dark rounded-3xl p-6 text-center shadow-inner relative overflow-hidden">
+                <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-escontel-green/15 rounded-full blur-xl"></div>
+                <span class="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Honorário Mensal Sugerido</span>
+                <div id="resultado-total" class="text-4xl font-extrabold text-escontel-green mt-2 tracking-tight transition-all">
+                    R$ 0,00
+                </div>
+                <div class="flex items-center justify-center gap-1.5 text-[10px] text-slate-400 mt-2 font-medium">
+                    <i data-lucide="shield-check" class="w-3.5 h-3.5 text-escontel-green"></i> Cálculo Alinhado à Tabela ASSCON 2026
+                </div>
+            </div>
+
+            <!-- Detalhamento Técnico das Rubricas Fiscais e de DP -->
+            <div class="bg-slate-50 rounded-2xl p-4 border border-slate-100 space-y-3">
+                <h4 class="text-xs font-bold text-slate-500 uppercase tracking-wider mb-1">Detalhamento Técnico</h4>
+                
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-600 font-medium">Setor Contábil / Fiscal Base</span>
+                    <span id="detalhe-contabilidade" class="font-bold text-slate-800">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-xs text-emerald-800 font-medium" id="detalhe-fator-r-row">
+                    <span>Adicional Fator R</span>
+                    <span id="detalhe-fator-r">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-xs text-amber-800 font-medium" id="detalhe-ajuste-row">
+                    <span>Adicional Movimentação Intensa (+30%)</span>
+                    <span id="detalhe-ajuste">R$ 0,00</span>
+                </div>
+                <div class="flex justify-between items-center text-xs">
+                    <span class="text-slate-600 font-medium">Departamento Pessoal</span>
+                    <span id="detalhe-dp" class="font-bold text-slate-800">R$ 0,00</span>
+                </div>
+                
+                <div class="border-t border-slate-200 pt-3 flex justify-between items-center text-xs">
+                    <span class="text-slate-500 font-medium">Data do Cálculo</span>
+                    <span id="print-date" class="font-semibold text-slate-600">--/--/----</span>
+                </div>
+            </div>
+
+            <!-- Ações Comerciais Integradas -->
+            <div class="grid grid-cols-1 gap-2.5">
+                <button onclick="exportToPDF()" class="w-full bg-escontel-dark hover:bg-black text-white font-bold py-3.5 px-4 rounded-2xl text-xs flex items-center justify-center gap-2 transition-all shadow-sm">
+                    <i data-lucide="file-down" class="w-4 h-4 text-escontel-green"></i>
+                    Exportar Proposta Comercial (PDF)
+                </button>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="printProposal()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 font-bold py-3 px-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-all">
+                        <i data-lucide="printer" class="w-3.5 h-3.5 text-slate-400"></i>
+                        Imprimir
+                    </button>
+                    <button onclick="goToForm()" class="bg-white hover:bg-slate-50 text-escontel-green border border-slate-200 font-bold py-3 px-3 rounded-2xl text-xs flex items-center justify-center gap-1.5 transition-all">
+                        <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i>
+                        Editar Dados
+                    </button>
+                </div>
+                <button onclick="resetSystem()" class="text-[10px] text-slate-400 hover:text-red-500 font-bold uppercase tracking-wider py-1.5 transition-all text-center">
+                    Resetar Parâmetros
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- BOTÃO FLUTUANTE DE WHATSAPP (CANTO INFERIOR ESQUERDO) -->
+    <a href="https://wa.me/554530270640?text=Bom%20dia!%20Eu%20gostaria" target="_blank" rel="noopener noreferrer"
+       class="fixed bottom-5 left-5 z-40 bg-[#25D366] hover:bg-[#1ebd59] text-white p-3.5 rounded-full shadow-lg hover:shadow-2xl transition-all duration-300 flex items-center justify-center no-print group">
+        <svg class="w-6 h-6" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L0 24l6.335-1.662c1.746.953 3.71 1.455 5.703 1.458h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+        </svg>
+        <span class="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:ml-2 transition-all duration-300 ease-out text-xs font-bold whitespace-nowrap">
+            Falar Conosco
+        </span>
+    </a>
+
+    <!-- TOAST NOTIFICATION PARA RETORNO DE SUCESSO -->
+    <div id="toast-message" class="fixed bottom-5 right-5 bg-slate-900 text-white px-5 py-3.5 rounded-2xl shadow-xl flex items-center gap-3 transition-all duration-300 opacity-0 pointer-events-none translate-y-2 z-50">
+        <div class="p-1 bg-escontel-green text-white rounded-lg">
+            <i data-lucide="check" class="w-4 h-4"></i>
+        </div>
+        <span class="text-xs font-semibold" id="toast-text">Ação concluída!</span>
+    </div>
+
+    <!-- PROPOSTA FORMATADA PARA IMPRESSÃO E GERAÇÃO DE PDF COM IDENTIDADE VISUAL ESCONTEL -->
+    <div id="proposal-printout" class="hidden print:block bg-white p-12 text-slate-800 w-full max-w-4xl mx-auto">
+        <!-- Cabeçalho de Impressão Premium -->
+        <div class="flex justify-between items-start border-b-2 border-slate-900 pb-6 mb-8">
+            <div>
+                <h1 class="text-3xl font-extrabold text-slate-900 tracking-tight">PROPOSTA COMERCIAL</h1>
+                <p class="text-xs text-slate-500 mt-1 uppercase tracking-wider">PRESTAÇÃO DE SERVIÇOS CONTÁBEIS E ASSESSORIA ADMINISTRATIVA</p>
+                <div class="mt-4 space-y-1 text-xs text-slate-600">
+                    <p><span class="font-bold">Data de Emissão:</span> <span class="print-current-date">--/--/----</span></p>
+                    <p><span class="font-bold">Validade da Simulação:</span> 30 dias a contar desta data</p>
+                    <p><span class="font-bold">Referencial:</span> Tabela de Honorários ASSCON (Vigência 2026)</p>
+                </div>
+            </div>
+            <!-- Logotipo Escontel no cabeçalho do PDF -->
+            <div class="text-right flex flex-col items-end">
+                <div class="flex items-center gap-1">
+                    <span class="text-2xl font-extrabold tracking-tight text-escontel-dark font-sans leading-none">ESC</span>
+                    <div class="relative w-7 h-7 flex items-center justify-center">
+                        <svg class="w-full h-full text-escontel-green" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="50" cy="50" r="45" stroke="currentColor" stroke-width="7" />
+                            <circle cx="50" cy="50" r="32" stroke="currentColor" stroke-width="7" />
+                            <circle cx="50" cy="50" r="19" stroke="currentColor" stroke-width="7" />
+                            <circle cx="50" cy="50" r="6" stroke="currentColor" stroke-width="7" />
+                            <polygon points="12,50 42,38 42,62" fill="#000" />
+                        </svg>
+                    </div>
+                    <span class="text-2xl font-extrabold tracking-tight text-escontel-dark font-sans leading-none">NTEL</span>
+                </div>
+                <div class="text-[9px] font-bold tracking-[0.25em] text-escontel-green uppercase -mt-0.5 leading-none pl-1">
+                    contabilidade
+                </div>
+            </div>
+        </div>
+
+        <!-- Parâmetros de Entrada da Proposta -->
+        <div class="bg-slate-50 rounded-2xl p-6 mb-8 border border-slate-200">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-500 mb-3">Parâmetros do Orçamento</h3>
+            <div class="grid grid-cols-2 gap-y-3 text-xs text-slate-700">
+                <div>
+                    <span class="text-slate-400 block">Atividade Econômica:</span>
+                    <span class="font-bold uppercase text-slate-900" id="print-atividade">--</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block">Regime de Enquadramento:</span>
+                    <span class="font-bold uppercase text-slate-900" id="print-regime">--</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block">Faturamento Anual Referência:</span>
+                    <span class="font-bold text-slate-900" id="print-faturamento">--</span>
+                </div>
+                <div>
+                    <span class="text-slate-400 block">Vínculos Ativos (Sócios/Funcionários):</span>
+                    <span class="font-bold text-slate-900" id="print-funcionarios">-- vínculos</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Detalhamento dos Honorários com Memória de Cálculo -->
+        <div class="mb-8">
+            <h3 class="text-xs font-extrabold text-slate-900 mb-4 border-b pb-1 uppercase tracking-wider">Memória de Cálculo de Honorários</h3>
+            
+            <div class="space-y-3">
+                <div class="border border-slate-100 p-3 rounded-xl bg-slate-50/50 flex justify-between text-xs font-medium">
+                    <span>Setor Contábil / Fiscal (Livro caixa, escrituração e apuração sem empregados)</span>
+                    <span id="print-val-contabilidade" class="font-bold">R$ 0,00</span>
+                </div>
+
+                <div class="border border-slate-100 p-3 rounded-xl bg-slate-50/50 flex justify-between text-xs font-medium" id="print-val-fator-r-row">
+                    <span>Adicional de apuração de Fator R (Simples Nacional)</span>
+                    <span id="print-val-fator-r" class="font-bold">R$ 0,00</span>
+                </div>
+
+                <div class="border border-slate-100 p-3 rounded-xl bg-slate-50/50 flex justify-between text-xs font-medium" id="print-val-ajuste-row">
+                    <span>Adicional para Volume de Transações / Movimentação Intensa (+30%)</span>
+                    <span id="print-val-ajuste" class="font-bold">R$ 0,00</span>
+                </div>
+
+                <div class="border border-slate-100 p-3 rounded-xl bg-slate-50/50 flex justify-between text-xs font-medium">
+                    <span>Departamento Pessoal (Folha de pagamento de empregados, pró-labore e autônomos)</span>
+                    <span id="print-val-dp" class="font-bold">R$ 0,00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Painel Destacado de Preço -->
+        <div class="bg-slate-900 text-white rounded-2xl p-6 mb-12 flex justify-between items-center">
+            <div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Total Mensal Sugerido</h4>
+                <p class="text-[10px] text-slate-300 mt-1">Valor referencial apurado conforme as tabelas oficiais da ASSCON 2026.</p>
+            </div>
+            <div class="text-right">
+                <div class="text-3xl font-black text-escontel-green" id="print-val-total">R$ 0,00</div>
+            </div>
+        </div>
+
+        <!-- Bloco de Assinaturas e Informações Legais -->
+        <div class="grid grid-cols-2 gap-12 mt-16 text-center text-xs">
+            <div>
+                <div class="border-t border-slate-300 pt-3">
+                    <p class="font-bold text-slate-800">ESCONTEL Contabilidade</p>
+                    <p class="text-slate-400 text-[10px]">Departamento de Precificação e Propostas</p>
+                </div>
+            </div>
+            <div>
+                <div class="border-t border-slate-300 pt-3">
+                    <p class="font-bold text-slate-800">Aceite do Proponente</p>
+                    <p class="text-slate-400 text-[10px]">Representante Legal do Cliente</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOTOR DE CÁLCULO CONTÁBIL CONFORME TABELA ASSCON 2026 -->
+    <script>
+        // Matriz de Precificação oficial ASSCON 2026 para "Contabilidade + Fiscal Sem Empregados"
+        // Chaves estruturadas por: [Regime Tributário][Faixa de Faturamento][Atividade Econômica]
+        const assconMatrix = {
+            simples: {
+                mei: { servico: 400.00, comercio: 550.00, industria: 700.00, multissetorial: 800.00 },
+                faixa1: { servico: 800.00, comercio: 1100.00, industria: 1250.00, multissetorial: 1350.00 },
+                faixa2: { servico: 1200.00, comercio: 1850.00, industria: 2100.00, multissetorial: 2250.00 },
+                faixa3: { servico: 2250.00, comercio: 2450.00, industria: 2650.00, multissetorial: 3120.00 },
+                faixa4: { servico: 3250.00, comercio: 3505.00, industria: 3625.00, multissetorial: 4120.00 },
+                faixa5: { servico: 4680.00, comercio: 4985.00, industria: 5245.00, multissetorial: 6120.00 },
+                faixa6: { servico: 5850.00, comercio: 6450.00, industria: 6875.00, multissetorial: 7850.00 }
+            },
+            presumido: {
+                mei: { servico: 950.00, comercio: 1220.00, industria: 1320.00, multissetorial: 1750.00 }, // Fallback para faixa1 já que MEI só se aplica no Simples
+                faixa1: { servico: 950.00, comercio: 1220.00, industria: 1320.00, multissetorial: 1750.00 },
+                faixa2: { servico: 2120.00, comercio: 2320.00, industria: 2485.00, multissetorial: 2950.00 },
+                faixa3: { servico: 4395.00, comercio: 4645.00, industria: 4765.00, multissetorial: 5510.00 },
+                faixa4: { servico: 5205.00, comercio: 5450.00, industria: 5500.00, multissetorial: 6485.00 },
+                faixa5: { servico: 6285.00, comercio: 6530.00, industria: 6685.00, multissetorial: 7650.00 },
+                faixa6: { servico: 8450.00, comercio: 8710.00, industria: 8830.00, multissetorial: 10320.00 }
+            },
+            real: {
+                mei: { servico: 1650.00, comercio: 1880.00, industria: 2000.00, multissetorial: 2150.00 }, // Fallback
+                faixa1: { servico: 1650.00, comercio: 1880.00, industria: 2000.00, multissetorial: 2150.00 },
+                faixa2: { servico: 3200.00, comercio: 3420.00, industria: 3625.00, multissetorial: 3995.00 },
+                faixa3: { servico: 3950.00, comercio: 4210.00, industria: 4420.00, multissetorial: 5200.00 },
+                faixa4: { servico: 6200.00, comercio: 6450.00, industria: 6850.00, multissetorial: 7120.00 },
+                faixa5: { servico: 9100.00, comercio: 10120.00, industria: 10295.00, multissetorial: 11200.00 },
+                faixa6: { servico: 13120.00, comercio: 13350.00, industria: 13450.00, multissetorial: 15800.00 }
+            }
+        };
+
+        // Estado interno reativo do simulador
+        const state = {
+            atividade: 'servico',
+            regime: 'simples',
+            faturamento: 'mei',
+            funcionarios: 0,
+            fatorR: false,
+            movimentacao: false,
+            
+            // Valores calculados pós-processamento
+            contabilidade: 400,
+            fatorRValor: 0,
+            ajusteValor: 0,
+            dp: 0,
+            total: 400
+        };
+
+        // Inicializador do App
+        window.onload = function() {
+            lucide.createIcons();
+            setupEventListeners();
+            calculateAll();
+        };
+
+        // Escuta a alteração de inputs do formulário
+        function setupEventListeners() {
+            // Atividade
+            document.getElementById('input-atividade').addEventListener('change', (e) => {
+                state.atividade = e.target.value;
+                calculateAll();
+            });
+
+            // Regime
+            const regimeSelect = document.getElementById('input-regime');
+            regimeSelect.addEventListener('change', (e) => {
+                state.regime = e.target.value;
+                
+                // Exibe Fator R condicionalmente
+                const wrapperFatorR = document.getElementById('wrapper-fator-r');
+                if (state.regime === 'simples') {
+                    wrapperFatorR.style.display = 'block';
+                } else {
+                    wrapperFatorR.style.display = 'none';
+                    document.getElementById('checkbox-fator-r').checked = false;
+                    state.fatorR = false;
+                }
+                calculateAll();
+            });
+
+            // Faturamento
+            document.getElementById('input-faturamento').addEventListener('change', (e) => {
+                state.faturamento = e.target.value;
+                calculateAll();
+            });
+
+            // Funcionários/Vínculos
+            document.getElementById('input-funcionarios').addEventListener('input', (e) => {
+                let value = parseInt(e.target.value);
+                if (isNaN(value) || value < 0) value = 0;
+                state.funcionarios = value;
+                calculateAll();
+            });
+
+            // Fator R
+            document.getElementById('checkbox-fator-r').addEventListener('change', (e) => {
+                state.fatorR = e.target.checked;
+                calculateAll();
+            });
+
+            // Movimentação Intensa
+            document.getElementById('checkbox-movimentacao').addEventListener('change', (e) => {
+                state.movimentacao = e.target.checked;
+                calculateAll();
+            });
+        }
+
+        // Processamento central da calculadora contábil
+        function calculateAll() {
+            // 1. Setor Fiscal e Contabilidade Sem Empregados (Puxado diretamente da nova matriz ASSCON 2026)
+            let baseContab = assconMatrix[state.regime][state.faturamento][state.atividade] || 0;
+            state.contabilidade = baseContab;
+
+            // 2. Acréscimo para Fator R (+ R$ 80,00 conforme requisito original para Simples)
+            state.fatorRValor = (state.regime === 'simples' && state.fatorR) ? 80.00 : 0.00;
+
+            // 3. Ajuste de Movimentação Intensa (+30% no valor contábil base, conforme página 3 da tabela)
+            state.ajusteValor = state.movimentacao ? (baseContab * 0.30) : 0.00;
+
+            // 4. Setor de Departamento Pessoal (Preço Unitário escalável por vínculos de Page 3 da tabela)
+            let baseDP = 0;
+            const vinc = state.funcionarios;
+            
+            if (vinc === 0) {
+                baseDP = 0;
+            } else if (vinc <= 2) {
+                baseDP = vinc * 165.50;
+            } else if (vinc <= 5) {
+                baseDP = vinc * 145.60;
+            } else if (vinc <= 10) {
+                baseDP = vinc * 129.50;
+            } else if (vinc <= 20) {
+                baseDP = vinc * 118.20;
+            } else if (vinc <= 40) {
+                baseDP = vinc * 107.50;
+            } else {
+                baseDP = vinc * 87.30;
+            }
+            state.dp = baseDP;
+
+            // Soma dos Honorários Totais
+            state.total = state.contabilidade + state.fatorRValor + state.ajusteValor + state.dp;
+
+            // Atualiza os componentes de visualização
+            updateResultDetails();
+        }
+
+        // Formatação monetária (Real Brasileiro)
+        function formatCurrency(val) {
+            return `R$ ${val.toFixed(2).replace('.', ',')}`;
+        }
+
+        // Sincroniza os estados com o DOM do resultado final
+        function updateResultDetails() {
+            document.getElementById('resultado-total').innerText = formatCurrency(state.total);
+            document.getElementById('detalhe-contabilidade').innerText = formatCurrency(state.contabilidade);
+            
+            // Fator R opcional
+            const fatorRRow = document.getElementById('detalhe-fator-r-row');
+            if (state.fatorRValor > 0) {
+                fatorRRow.classList.remove('hidden');
+                document.getElementById('detalhe-fator-r').innerText = formatCurrency(state.fatorRValor);
+            } else {
+                fatorRRow.classList.add('hidden');
+            }
+
+            // Ajuste Movimentação opcional
+            const ajusteRow = document.getElementById('detalhe-ajuste-row');
+            if (state.ajusteValor > 0) {
+                ajusteRow.classList.remove('hidden');
+                document.getElementById('detalhe-ajuste').innerText = formatCurrency(state.ajusteValor);
+            } else {
+                ajusteRow.classList.add('hidden');
+            }
+
+            document.getElementById('detalhe-dp').innerText = formatCurrency(state.dp);
+
+            // Grava data do processamento
+            const currentDateStr = new Date().toLocaleDateString('pt-BR');
+            document.getElementById('print-date').innerText = currentDateStr;
+        }
+
+        // Transição de Telas / Abas
+        function goToResult() {
+            document.getElementById('step-form').classList.add('hidden');
+            const stepResult = document.getElementById('step-result');
+            stepResult.classList.remove('hidden');
+            stepResult.classList.add('fade-in');
+        }
+
+        function goToForm() {
+            document.getElementById('step-result').classList.add('hidden');
+            const stepForm = document.getElementById('step-form');
+            stepForm.classList.remove('hidden');
+            stepForm.classList.add('fade-in');
+        }
+
+        // Reset completo do sistema
+        function resetSystem() {
+            state.atividade = 'servico';
+            state.regime = 'simples';
+            state.faturamento = 'mei';
+            state.funcionarios = 0;
+            state.fatorR = false;
+            state.movimentacao = false;
+
+            document.getElementById('input-atividade').value = 'servico';
+            document.getElementById('input-regime').value = 'simples';
+            document.getElementById('input-faturamento').value = 'mei';
+            document.getElementById('input-funcionarios').value = 0;
+            document.getElementById('checkbox-fator-r').checked = false;
+            document.getElementById('checkbox-movimentacao').checked = false;
+            document.getElementById('wrapper-fator-r').style.display = 'block';
+
+            calculateAll();
+            goToForm();
+            showToast("Calculadora resetada com sucesso!");
+        }
+
+        // Emite avisos visuais rápidos (Toasts)
+        function showToast(text) {
+            const toast = document.getElementById('toast-message');
+            document.getElementById('toast-text').innerText = text;
+            
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-2');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-2');
+            }, 3000);
+        }
+
+        // Texto correspondente à faixa de faturamento selecionada
+        function getFaturamentoFriendlyText(faixa) {
+            const map = {
+                mei: 'Até R$ 81.000,00 (MEI)',
+                faixa1: 'Até R$ 180.000,00 (ME)',
+                faixa2: 'De R$ 180.000,01 a R$ 360.000,00 (ME)',
+                faixa3: 'De R$ 360.000,01 a R$ 720.000,00 (EPP)',
+                faixa4: 'De R$ 720.000,01 a R$ 1.800.000,00 (EPP)',
+                faixa5: 'De R$ 1.800.000,01 a R$ 3.600.000,00 (EPP)',
+                faixa6: 'De R$ 3.600.000,01 a R$ 4.800.000,00 (EPP)'
+            };
+            return map[faixa] || '';
+        }
+
+        // Preenche o papel timbrado com os dados e resultados do cálculo
+        function preparePrintProposalData() {
+            const currentDateStr = new Date().toLocaleDateString('pt-BR');
+            document.querySelectorAll('.print-current-date').forEach(el => el.innerText = currentDateStr);
+
+            document.getElementById('print-atividade').innerText = state.atividade;
+            document.getElementById('print-regime').innerText = state.regime;
+            document.getElementById('print-faturamento').innerText = getFaturamentoFriendlyText(state.faturamento);
+            document.getElementById('print-funcionarios').innerText = state.funcionarios;
+
+            // Valores de rubrica na impressão
+            document.getElementById('print-val-contabilidade').innerText = formatCurrency(state.contabilidade);
+            
+            // Fator R
+            const printFatorRRow = document.getElementById('print-val-fator-r-row');
+            if (state.fatorRValor > 0) {
+                printFatorRRow.classList.remove('hidden');
+                document.getElementById('print-val-fator-r').innerText = formatCurrency(state.fatorRValor);
+            } else {
+                printFatorRRow.classList.add('hidden');
+            }
+
+            // Ajuste Movimentação
+            const printAjusteRow = document.getElementById('print-val-ajuste-row');
+            if (state.ajusteValor > 0) {
+                printAjusteRow.classList.remove('hidden');
+                document.getElementById('print-val-ajuste').innerText = formatCurrency(state.ajusteValor);
+            } else {
+                printAjusteRow.classList.add('hidden');
+            }
+
+            document.getElementById('print-val-dp').innerText = formatCurrency(state.dp);
+            document.getElementById('print-val-total').innerText = formatCurrency(state.total);
+        }
+
+        // Impressão nativa do navegador
+        function printProposal() {
+            preparePrintProposalData();
+            showToast("Carregando visualização de impressão...");
+            setTimeout(() => {
+                window.print();
+            }, 300);
+        }
+
+        // Exportador HTML para PDF Comercial
+        function exportToPDF() {
+            preparePrintProposalData();
+            showToast("Renderizando PDF de alta qualidade...");
+
+            const printout = document.getElementById('proposal-printout');
+            printout.classList.remove('hidden');
+
+            const config = {
+                margin:       12,
+                filename:     `Proposta_Comercial_ESCONTEL_${state.total.toFixed(0)}R$.pdf`,
+                image:        { type: 'jpeg', quality: 0.98 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().from(printout).set(config).save().then(() => {
+                printout.classList.add('hidden');
+                showToast("PDF salvo com sucesso!");
+            }).catch(err => {
+                console.error("Erro na geração do PDF:", err);
+                printout.classList.add('hidden');
+                showToast("Erro inesperado. Tente a opção Imprimir.");
+            });
+        }
+    </script>
+</body>
+</html>
