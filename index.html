@@ -85,11 +85,11 @@
                      alt="Logo do Escritório" 
                      class="w-16 h-16 rounded-full shadow-lg object-cover">
 
-                <!-- Botão Fator R -->
-                <a href="https://cr0w131.github.io/fatorr/" target="_blank"
+                <!-- Botão Calculadora de Honorários -->
+                <a href="https://cg101010.github.io/Geral/calculohonorario.html" target="_blank"
                    class="px-5 py-2 text-base font-semibold text-white bg-green-600 rounded-lg hover:bg-green-700 transition duration-150 ease-in-out shadow-lg"
-                   aria-label="Acessar Calculadora Fator R">
-                    Fator R
+                   aria-label="Acessar Calculadora de Honorários">
+                    Calculadora de Honorários
                 </a>
             </div>
             <!-- FIM DOS BOTÕES DE ACESSO -->
@@ -113,23 +113,98 @@
         const consultarBtn = document.getElementById('consultarBtn');
         const resultadoArea = document.getElementById('resultadoArea');
 
-        // Variáveis globais para a lista de clientes (serão carregadas do JSON)
-        let clientList = {};
-        let codeToCnpjMap = {};
+        // --- LISTA DE CLIENTES DO ESCRITÓRIO (CNPJ -> CÓDIGO) ---
+        const clientList = {
+            "81404691000190": "3", "05764620000110": "14", "05701267000120": "25",
+            "03031053000168": "26", "82304684000180": "32", "75423905000173": "36",
+            "06266954000127": "49", "06239217000135": "52", "06986992000154": "56",
+            "07369310000127": "61", "07510008000147": "64", "20252609000165": "66",
+            "07526289000126": "68", "08000726000136": "77", "03062199000170": "80",
+            "00304324000113": "82", "04177730000113": "83", "08701269000107": "84",
+            "81164733000163": "86", "00236822000176": "87", "05462277000150": "88",
+            "08845842000156": "91", "08931775000192": "95", "09174436000171": "98",
+            "09164090000120": "99", "09284714000143": "101", "09659268000104": "107",
+            "00073196000144": "113", "11071088000159": "121", "10870492000120": "122",
+            "11653061000174": "127", "76780394000100": "132", "09650554000109": "134",
+            "13664634000190": "139", "82024944000163": "141", "10283410000140": "143",
+            "16560513000197": "193", "17251286000180": "301", "19291655000194": "303",
+            "20856394000191": "310", "06304820000153": "311", "11670073000107": "312",
+            "21313959000157": "319", "21560163000107": "320", "09260718000191": "324",
+            "03473344000106": "325", "18296034000130": "326", "23814892000160": "336",
+            "05229339000188": "344", "05229339000269": "345", "77758563000178": "352",
+            "81466948000139": "353", "10325267000102": "355", "24899633000141": "357",
+            "25402860000182": "360", "28683247000179": "366", "77770014000119": "367",
+            "28927193000140": "369", "29033870000149": "370", "30202273000180": "372",
+            "30684172000192": "375", "77123180000123": "376", "05250624000180": "378",
+            "31296188000190": "379", "04816303000138": "380", "04619884000118": "384",
+            "19843088000131": "385", "07494033000184": "386", "08239724000102": "387",
+            "13557757000122": "388", "31625394000105": "393", "22544454000166": "396",
+            "32537677000150": "397", "26333624000114": "398", "00462603000105": "399",
+            "15606922000114": "405", "07042387000198": "406", "27129357000120": "408",
+            "33846591000171": "409", "34005608000120": "412", "34829204000151": "413",
+            "35110355000118": "414", "35571825000140": "415", "34437192000110": "417",
+            "08182569000127": "418", "09005318000130": "419", "15916707000110": "420",
+            "33886802000108": "422", "36686071000137": "426", "37944457000164": "427",
+            "37150883000126": "428", "03628644000117": "429", "36286632000100": "433",
+            "33872642000130": "434", "38831725000102": "437", "39553468000149": "440",
+            "39678121000122": "441", "39719607000161": "442", "13962393000166": "443",
+            "39776024000172": "444", "39831406000151": "445", "29532898000120": "446",
+            "37458822000120": "447", "24039276000141": "448", "36503369000164": "451",
+            "29266318000109": "452", "40016828000152": "453", "19367367000176": "455",
+            "41131328000124": "456", "21177337000149": "461", "41067443000187": "462",
+            "42567199000184": "463", "40750303000146": "465", "40750033000173": "466",
+            "42880168000189": "467", "42791260000172": "469", "14999584000165": "472",
+            "82251877000110": "475", "44279801000103": "476", "44454583000104": "477",
+            "33846591000252": "478", "44557898000179": "479", "35535495000138": "481",
+            "44799085000195": "482", "45861525000150": "487", "04927586000195": "488",
+            "46565889000155": "489", "17798934000113": "491", "46900574000117": "493",
+            "47058399000125": "495", "47152752000131": "496", "47656924000104": "497",
+            "46343538000108": "501", "47992150000192": "502", "48423155000167": "505",
+            "48430827000161": "506", "48471824000176": "507", "48551343000170": "509",
+            "48748488000166": "512", "49202490000106": "513", "05659981000105": "516",
+            "49623835000197": "518", "03518672000181": "520", "49969573000117": "521",
+            "49996046000100": "522", "50046868000109": "523", "50282265000106": "524",
+            "50450423000181": "526", "07670180000168": "527", "50666613000130": "528",
+            "50777290000152": "529", "51036773000169": "531", "51065974000194": "533",
+            "02271437000195": "534", "51189278000190": "535", "50666613000211": "536",
+            "51763572000163": "537", "51948238000184": "538", "52548894000152": "539",
+            "08049276000176": "540", "85064061000175": "542", "53519111000175": "543",
+            "53637057000162": "544", "53655525000121": "545", "42696024000177": "546",
+            "45685937000186": "547", "68806504000137": "548", "54574498000125": "550",
+            "02663634000150": "551", "55053414000170": "552", "55246256000175": "553",
+            "55370990000141": "554", "47152752000212": "555", "47152752000301": "556",
+            "50149296000185": "559", "55606514000187": "560", "55716793000131": "561",
+            "48593836000173": "562", "55961570000130": "563", "56122460000147": "564",
+            "56175679000104": "565", "03299405000160": "566", "15739397000105": "567",
+            "56266951000161": "568", "56961929000131": "569", "57161365000115": "570",
+            "57171047000135": "571", "55672603000121": "572", "57641303000100": "573",
+            "57744362000104": "574", "19455931000102": "575", "37830902000165": "576",
+            "57247473000105": "577", "58717338000149": "578", "58947154000175": "580",
+            "58947392000180": "581", "18606390000103": "582", "53626698000111": "583",
+            "05229339000340": "584", "31632196000160": "585", "59312411000165": "586",
+            "59435374000182": "587", "59627311000128": "588", "59661308000120": "589",
+            "59841491000145": "590", "59856268000172": "591", "60225793000179": "592",
+            "60299549000150": "593", "60432693000113": "594", "36648222000162": "595",
+            "50361177000191": "596", "60568322000163": "597", "60741638000105": "598",
+            "61200492000153": "599", "61269436000175": "600", "04166635000114": "601",
+            "38057510000178": "602", "47152752000484": "604", "53572891000117": "605",
+            "51189278000270": "606", "51189278000351": "607", "51189278000432": "608",
+            "08991016000115": "609", "61983424000108": "610", "61569938000111": "611",
+            "62423658000163": "612", "62636776000150": "613", "62762181000140": "614",
+            "62889752000102": "615",
+        };
+
+        const codeToCnpjMap = {};
+        for (const cnpj in clientList) {
+            codeToCnpjMap[clientList[cnpj]] = cnpj;
+        }
         
-        // --- CONFIGURAÇÃO DOS BOTÕES DE ACESSO RÁPIDO ---
         const quickAccessButtons = [
-            // Botão 1: IPTU-PMFI
             { name: "IPTU-PMFI", link: "https://governodigital.foz.pr.gov.br/governo-digital/contribuinte/cadastros?contexto=iptu&tipo=cpf" },
-            // Botão 2: Débitos-PMFI
             { name: "Débitos-PMFI", link: "https://governodigital.foz.pr.gov.br/governo-digital/contribuinte/cadastros?contexto=empresas&tipo=cnpj" },
-            // Botão 3: Nota Fiscal-PMFI
             { name: "Nota Fiscal-PMFI", link: "https://fozdoiguacupr.gestaoiss.com.br/" },
-            // Botão 4
             { name: "E-CAC", link: "https://cav.receita.fazenda.gov.br/autenticacao/login" },
-            // Botão 5
             { name: "FGTS Digital", link: "https://fgtsdigital.sistema.gov.br/portal/login" },
-            // Botão 6
             { name: "eSocial", link: "https://login.esocial.gov.br/login.aspx" },
         ];
         
@@ -148,93 +223,55 @@
             });
             grid.innerHTML = buttonsHtml;
         }
-        // --- FIM DA CONFIGURAÇÃO DOS BOTÕES DE ACESSO RÁPIDO ---
 
-
-        // FUNÇÃO DE MÁSCARA CORRIGIDA E ROBUSTA
         function applyCnpjMask(input) {
-            let value = input.value.replace(/\D/g, ''); // 1. Remove tudo que não for dígito
+            let value = input.value.replace(/\D/g, ''); 
             const rawLength = value.length;
 
-            // Caso 1: Código de Cliente (1 a 4 dígitos) - Não aplica máscara
             if (rawLength > 0 && rawLength <= 4) {
                 input.value = value;
                 return;
             }
 
-            // Caso 2: CNPJ (limita a 14 dígitos)
             if (rawLength > 14) {
                 value = value.substring(0, 14);
             }
 
-            // Aplica a máscara CNPJ (XX.XXX.XXX/XXXX-XX) usando substring para evitar erros de regex
             let formattedValue = '';
             
-            if (value.length > 0) {
-                formattedValue += value.substring(0, 2);
-            }
-            if (value.length > 2) {
-                formattedValue += '.' + value.substring(2, 5);
-            }
-            if (value.length > 5) {
-                formattedValue += '.' + value.substring(5, 8);
-            }
-            if (value.length > 8) {
-                formattedValue += '/' + value.substring(8, 12);
-            }
-            if (value.length > 12) {
-                formattedValue += '-' + value.substring(12, 14);
-            }
+            if (value.length > 0) formattedValue += value.substring(0, 2);
+            if (value.length > 2) formattedValue += '.' + value.substring(2, 5);
+            if (value.length > 5) formattedValue += '.' + value.substring(5, 8);
+            if (value.length > 8) formattedValue += '/' + value.substring(8, 12);
+            if (value.length > 12) formattedValue += '-' + value.substring(12, 14);
 
             input.value = formattedValue;
         }
 
-        // Função utilitária para exibir a Razão Social ou Nome Fantasia
         function getNomeExibicao(data) {
             return data.nome_fantasia && data.nome_fantasia.trim() !== ''
                 ? data.nome_fantasia
                 : data.razao_social;
         }
 
-        // Função para formatar a situação cadastral em texto descritivo e capitalizado
         function formatarSituacaoCadastral(situacao) {
-            if (situacao === null || situacao === undefined || situacao === '') {
-                return 'Não Informada';
-            }
-            
+            if (situacao === null || situacao === undefined || situacao === '') return 'Não Informada';
             const situacaoString = String(situacao);
-            
             const statusMap = {
-                // Status textuais (esperados em caixa alta)
                 'ATIVA': 'Ativa', 'BAIXADA': 'Baixada', 'SUSPENSA': 'Suspensa',
                 'INAPTA': 'Inapta', 'NULA': 'Nula',
-                
-                // Mapeamento de códigos numéricos (Receita Federal) como strings
                 '01': 'Nula', '02': 'Ativa', '03': 'Suspensa', '04': 'Inapta', '08': 'Baixada',
                 '1': 'Nula', '2': 'Ativa', '3': 'Suspensa', '4': 'Inapta', '8': 'Baixada',
             };
-
             const upperCaseStatus = situacaoString.toUpperCase().trim();
-            
             return statusMap[upperCaseStatus] || situacaoString.charAt(0).toUpperCase() + situacaoString.slice(1).toLowerCase();
         }
 
-        // Função utilitária para exibir mensagens (sucesso/erro/info)
         function exibirMensagem(tipo, titulo, conteudo) {
             const baseClasses = "p-4 rounded-lg font-medium shadow-md transition-all duration-300 ease-in-out";
-            let colorClasses;
-
-            switch (tipo) {
-                case 'sucesso':
-                    colorClasses = "bg-green-100 border-l-4 border-green-500 text-green-800";
-                    break;
-                case 'erro':
-                    colorClasses = "bg-red-100 border-l-4 border-red-500 text-red-800";
-                    break;
-                default: // 'info'
-                    colorClasses = "bg-blue-100 border-l-4 border-blue-500 text-blue-800";
-                    break;
-            }
+            let colorClasses = tipo === 'sucesso' ? "bg-green-100 border-l-4 border-green-500 text-green-800" :
+                               tipo === 'erro' ? "bg-red-100 border-l-4 border-red-500 text-red-800" :
+                               "bg-blue-100 border-l-4 border-blue-500 text-blue-800";
 
             resultadoArea.innerHTML = `
                 <div class="animate-in fade-in ${baseClasses} ${colorClasses}">
@@ -243,162 +280,73 @@
                 </div>
             `;
         }
-        
-        // Função para carregar clientes do arquivo JSON
-        async function carregarClientes() {
-            try {
-                // Exibe uma mensagem de carregamento inicial
-                resultadoArea.innerHTML = `<div class="p-4 rounded-lg font-medium shadow-md bg-blue-100 border-l-4 border-blue-500 text-blue-800 text-sm">Carregando lista de clientes...</div>`;
-                
-                const response = await fetch('clientes.json');
-                
-                // Verifica se a resposta foi bem-sucedida
-                if (!response.ok) {
-                    throw new Error(`Erro HTTP! Status: ${response.status}`);
-                }
 
-                clientList = await response.json();
-
-                // Cria o mapa reverso (CÓDIGO -> CNPJ)
-                codeToCnpjMap = {};
-                for (const cnpj in clientList) {
-                    codeToCnpjMap[clientList[cnpj]] = cnpj;
-                }
-
-                console.log('Clientes carregados:', Object.keys(clientList).length);
-                // Exibe a mensagem "Pronto para Consultar" após o carregamento bem-sucedido
-                // MENSAGEM ATUALIZADA: Remove a contagem de clientes para simplificar.
-                exibirMensagem('info', 'Pronto para Consultar', 'Digite o CNPJ ou o Código de Cliente para iniciar a busca.');
-
-            } catch (error) {
-                console.error('Erro ao carregar clientes.json:', error);
-                // Se der erro, garante que a lista está vazia e exibe mensagem, mas não bloqueia a consulta de CNPJ.
-                clientList = {};
-                codeToCnpjMap = {};
-                exibirMensagem('erro', 'Erro ao Carregar Lista de Clientes', 'Não foi possível carregar a lista de clientes. Apenas a consulta por CNPJ (14 dígitos) funcionará.');
-            }
-        }
-
-
-        // Função principal para consultar o CNPJ (agora aceita CNPJ formatado/não formatado ou Código)
-        // O bloqueio de consulta foi removido para permitir a busca de CNPJ mesmo sem a lista de clientes.
         async function consultarCNPJ() {
-            // Remove todos os caracteres não numéricos para obter o valor puro
             const rawInput = cnpjInput.value.replace(/\D/g, ''); 
             consultarBtn.disabled = true;
 
             let cnpjToSearch;
             
             if (rawInput.length === 14) {
-                // Caso 1: Entrada é um CNPJ válido (14 dígitos puros)
                 cnpjToSearch = rawInput;
             } else if (rawInput.length > 0 && rawInput.length <= 4 && codeToCnpjMap[rawInput]) {
-                // Caso 2: Entrada é um Código de Cliente válido (código curto), e o mapa foi carregado
                 cnpjToSearch = codeToCnpjMap[rawInput];
             } else {
-                // Caso 3: Entrada inválida (ou código fornecido quando o mapa falhou ao carregar)
                 exibirMensagem('erro', 'Entrada Inválida', 'Insira um CNPJ válido (14 dígitos) ou um Código de Cliente existente.');
                 consultarBtn.disabled = false;
                 return;
             }
             
-            // 1. Inicia o estado de carregamento
             resultadoArea.innerHTML = `<div class="flex justify-center py-4"><div class="spinner"></div></div>`;
 
             try {
-                // 2. Faz a requisição à API usando o CNPJ determinado
-                const url = `${API_URL}${cnpjToSearch}`;
-                const response = await fetch(url);
+                const response = await fetch(`${API_URL}${cnpjToSearch}`);
                 const data = await response.json();
 
-                // 3. Verifica a resposta da API
                 if (response.ok) {
-                    // Sucesso: exibe os dados da empresa
                     const nomeExibicao = getNomeExibicao(data);
-                    
-                    // Formata a situação cadastral para texto descritivo e capitalizado
                     const situacaoFormatada = formatarSituacaoCadastral(data.situacao_cadastral);
-                    
                     const endereco = `${data.tipo_logradouro} ${data.logradouro}, ${data.numero} - ${data.bairro}, ${data.municipio}/${data.uf}`;
-
-                    // 4. Verifica se a empresa é cliente do escritório (clientList pode estar vazia, o que é seguro)
                     const clientCode = clientList[cnpjToSearch];
                     let clientStatusHtml = '';
 
-                    // ATENÇÃO: Links de arquivo local (file:///) só funcionarão no seu ambiente de trabalho (Windows Explorer/Rede).
                     const linkEmissaoRecibo = "file:///Z:/06%20-%20DEPARTAMENTO%20PESSOAL/CALCULO/recibo.html";
-                    const linkCalculadora = "https://geral-8c6c.vercel.app/";
+                    const linkCalculadora = "file:///Z:/06%20-%20DEPARTAMENTO%20PESSOAL/CALCULO/holerite.html";
 
                     if (clientCode) {
-                        // É cliente: mostra o código e os botões adicionais
                         clientStatusHtml = `
                             <div class="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-lg shadow-inner text-center space-y-4 animate-in fade-in duration-500">
                                 <p class="text-sm font-semibold text-gray-700">Status do Escritório:</p>
-                                
-                                <!-- Código do Cliente -->
                                 <div class="flex justify-center">
-                                    <span
-                                       class="sm:w-auto px-6 py-3 bg-amber-500 text-white font-extrabold text-xl rounded-xl shadow-md inline-block cursor-default" 
-                                       title="Código do Cliente">
+                                    <span class="sm:w-auto px-6 py-3 bg-amber-500 text-white font-extrabold text-xl rounded-xl shadow-md inline-block cursor-default" title="Código do Cliente">
                                         CÓDIGO: ${clientCode}
                                     </span>
                                 </div>
-                                
-                                <!-- Botões de Ação para Clientes -->
                                 <div class="flex justify-center gap-2 pt-2 flex-wrap">
-                                    <a href="${linkEmissaoRecibo}" target="_blank"
-                                       class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md"
-                                       title="Acessar Emissão de Recibo">
-                                        Emissão Recibo
-                                    </a>
-                                    <a href="${linkCalculadora}" target="_blank"
-                                       class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md"
-                                       title="Acessar Calculadora Trabalhista">
-                                        Calculadora
-                                    </a>
-                                    <a href="file:///Z:/02%20-%20CONTROLES%20-%20ESCONTEL/CONTROLES/00%20-%20Controle%20de%20Certificados.xlsx" target="_blank"
-                                       class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md"
-                                       title="Acessar Controle de Certificados">
-                                        Controle Certificados
-                                    </a>
+                                    <a href="${linkEmissaoRecibo}" target="_blank" class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md">Emissão Recibo</a>
+                                    <a href="${linkCalculadora}" target="_blank" class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md">Calculadora</a>
+                                    <a href="file:///Z:/02%20-%20CONTROLES%20-%20ESCONTEL/CONTROLES/00%20-%20Controle%20de%20Certificados.xlsx" target="_blank" class="px-4 py-2 bg-amber-500 text-white font-semibold text-sm rounded-lg hover:bg-amber-600 transition duration-150 shadow-md">Controle Certificados</a>
                                 </div>
                             </div>
                         `;
                     } else {
-                        // Não é cliente: mostra a mensagem.
-                        clientStatusHtml = `
-                            <div class="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-inner text-center animate-in fade-in duration-500">
-                                <p class="text-xl font-extrabold text-red-600">Não é Cliente</p>
-                            </div>
-                        `;
+                        clientStatusHtml = `<div class="mt-4 p-4 bg-gray-100 border border-gray-300 rounded-lg shadow-inner text-center animate-in fade-in duration-500"><p class="text-xl font-extrabold text-red-600">Não é Cliente</p></div>`;
                     }
 
-                    // Monta o HTML completo do resultado (Dados API + Status Cliente)
                     resultadoArea.innerHTML = `
                         <div class="bg-white border border-gray-200 rounded-xl shadow-lg p-6 space-y-4 animate-in fade-in duration-500">
-                            <!-- Nome de Exibição -->
                             <h3 class="text-2xl font-bold text-blue-600">${nomeExibicao}</h3>
-                            <p class="text-gray-600 text-sm">
-                                <span class="font-semibold">Razão Social:</span> ${data.razao_social}
-                            </p>
-
+                            <p class="text-gray-600 text-sm"><span class="font-semibold">Razão Social:</span> ${data.razao_social}</p>
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <!-- Situação Cadastral -->
                                 <div>
                                     <p class="text-sm font-semibold text-gray-500 uppercase">Situação Cadastral</p>
-                                    <span class="text-lg font-bold ${situacaoFormatada === 'Ativa' ? 'text-green-600' : 'text-red-600'}">
-                                        ${situacaoFormatada}
-                                    </span>
-                                    
+                                    <span class="text-lg font-bold ${situacaoFormatada === 'Ativa' ? 'text-green-600' : 'text-red-600'}">${situacaoFormatada}</span>
                                 </div>
-                                <!-- CNPJ -->
                                 <div>
                                     <p class="text-sm font-semibold text-gray-500 uppercase">CNPJ</p>
                                     <p class="text-lg font-mono text-gray-800">${cnpjToSearch.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, '$1.$2.$3/$4-$5')}</p>
                                 </div>
                             </div>
-
-                            <!-- Endereço e Datas -->
                             <div>
                                 <p class="text-sm font-semibold text-gray-500 uppercase">Endereço Completo</p>
                                 <p class="text-gray-700">${endereco}</p>
@@ -408,35 +356,24 @@
                         ${clientStatusHtml}
                     `;
                 } else {
-                    // Erro: Exibe a mensagem de erro da API
-                    const errorMessage = data.message || 'O CNPJ/Código informado não foi encontrado ou não está disponível na base de dados.';
-                    exibirMensagem('erro', 'Falha na Consulta', errorMessage);
+                    exibirMensagem('erro', 'Falha na Consulta', data.message || 'O CNPJ/Código informado não foi encontrado.');
                 }
-
             } catch (error) {
-                // Erro de rede ou outro erro inesperado
                 console.error('Erro na consulta:', error);
-                exibirMensagem('erro', 'Erro de Conexão', 'Não foi possível conectar ao serviço de consulta. Verifique sua conexão ou tente novamente mais tarde.');
+                exibirMensagem('erro', 'Erro de Conexão', 'Não foi possível conectar ao serviço de consulta.');
             } finally {
-                // 5. Finaliza o estado de carregamento
                 consultarBtn.disabled = false;
             }
         }
 
-        // Listener para permitir a consulta ao pressionar 'Enter'
-        cnpjInput.addEventListener('keydown', function(event) {
-            if (event.key === 'Enter' && !consultarBtn.disabled) {
-                consultarCNPJ();
-            }
+        cnpjInput.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter' && !consultarBtn.disabled) consultarCNPJ();
         });
 
-        // Mensagem inicial e Configuração dos Botões de Acesso Rápido
         document.addEventListener('DOMContentLoaded', () => {
-            // Chama o carregamento da lista de clientes (irá exibir o status de carregamento)
-            carregarClientes(); 
-            setupQuickAccessButtons(); // Chama a função para gerar os botões
+            exibirMensagem('info', 'Pronto para Consultar', 'Digite o CNPJ ou o Código de Cliente para iniciar a busca.');
+            setupQuickAccessButtons();
         });
-
     </script>
 </body>
 </html>
